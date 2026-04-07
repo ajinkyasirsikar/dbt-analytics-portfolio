@@ -25,6 +25,8 @@ models:
       staging:
         +materialized: view
         +schema: beauty_staging
+      intermediate:
+        +materialized: ephemeral
       marts:
         +materialized: table
         +schema: beauty_analytics
@@ -32,6 +34,12 @@ models:
       staging:
         +materialized: view
         +schema: partner_staging
+      intermediate:
+        +materialized: ephemeral
       marts:
         +materialized: table
         +schema: partner_analytics
+
+snapshots:
+  multi_domain_analytics:
+    +target_schema: snapshots

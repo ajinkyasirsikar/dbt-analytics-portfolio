@@ -1,46 +1,76 @@
 # Multi-Domain Analytics — dbt Portfolio
 
-A production-style dbt project modeling two distinct business domains: **Beauty Retail** (B2C product analytics) and **Partner Channel** (B2B platform analytics). Demonstrates dimensional modeling, data quality testing, and CI/CD across different data contexts.
+A production-style dbt project modeling two distinct business domains: **Beauty Retail** (B2C product analytics) and **Partner Channel** (B2B platform analytics). Demonstrates dimensional modeling, incremental processing, SCD Type 2 snapshots, data quality testing, and CI/CD across different data contexts.
 
 ## Architecture
 
 ```
 seeds (raw CSVs)
   → staging (cleaned, typed, standardized)
-    → marts (star schema: facts + dimensions + analytical models)
+    → intermediate (shared aggregation logic, ephemeral)
+      → marts (star schema: facts + dimensions + analytical models)
+        → exposures (downstream dashboards + ML pipelines)
+
+snapshots (SCD Type 2: loyalty tier + partner tier history)
 ```
 
 ### Beauty Retail Domain
 Models inspired by category analytics across Haircare, Fragrance, and Skincare.
 
-| Model | Type | What it answers |
-|-------|------|-----------------|
-| `fct_beauty_sales` | Fact | Enriched transactions with product/category context |
-| `dim_beauty_customers` | Dimension | Lifetime value, repurchase behavior, cross-category affinity |
-| `mart_category_cross_sell` | Analytical | Which categories are bought together? What's the affinity rate? |
-| `mart_category_monthly_performance` | Analytical | MoM trends, online share, seasonal patterns by category |
+| Layer | Model | Type | What it does |
+|-------|-------|------|-------------|
+| Staging | `stg_beauty_customers` | view | Cleaned customers with metro area derivation |
+| Staging | `stg_beauty_products` | view | Products with margin calc and price tier |
+| Staging | `stg_beauty_transactions` | view | Transactions with net revenue and time dimensions |
+| Intermediate | `int_customer_purchase_summary` | ephemeral | Customer-level lifetime aggregation (DRY) |
+| Intermediate | `int_customer_category_spend` | ephemeral | Customer × category spend matrix (DRY) |
+| Mart | `fct_beauty_sales` | **incremental** | Enriched transactions — only processes new rows |
+| Mart | `dim_beauty_customers` | table | Lifetime value, cross-sell affinity, discount sensitivity, lifecycle status |
+| Mart | `mart_category_cross_sell` | table | Category pair affinity with bundle opportunity scoring |
+| Mart | `mart_category_monthly_performance` | table | MoM trends, online share, seasonal patterns |
+| Snapshot | `snap_customer_loyalty` | SCD2 | Tracks loyalty tier changes over time |
 
 ### Partner Channel Domain
 Models inspired by building a multi-region unified data model for partner analytics.
 
-| Model | Type | What it answers |
-|-------|------|-----------------|
-| `dim_partners` | Dimension | Health score, revenue metrics, engagement depth per partner |
-| `fct_partner_quarterly_revenue` | Fact | QoQ growth by partner × product line × region |
-| `mart_region_summary` | Analytical | Cross-region executive view: revenue, adoption, at-risk partners |
+| Layer | Model | Type | What it does |
+|-------|-------|------|-------------|
+| Staging | `stg_partners` | view | Partners with region grouping and tenure |
+| Staging | `stg_partner_revenue` | view | Revenue normalized to USD |
+| Staging | `stg_partner_engagement` | view | Usage events standardized |
+| Intermediate | `int_partner_revenue_summary` | ephemeral | Revenue aggregation with concentration metrics (DRY) |
+| Mart | `dim_partners` | table | Health score, churn risk, revenue efficiency |
+| Mart | `fct_partner_quarterly_revenue` | table | QoQ growth by partner × product × region |
+| Mart | `mart_region_summary` | table | Cross-region executive view |
+| Snapshot | `snap_partner_tier` | SCD2 | Tracks partner tier changes over time |
+
+## Key Patterns Demonstrated
+
+| Pattern | Where | Why it matters |
+|---------|-------|---------------|
+| **Incremental materialization** | `fct_beauty_sales` | Production-scale: only processes new rows, not full rescans |
+| **SCD Type 2 snapshots** | `snap_customer_loyalty`, `snap_partner_tier` | Historical state tracking for accurate cohort analysis |
+| **Intermediate (ephemeral) models** | `int_customer_*`, `int_partner_*` | DRY: shared aggregation logic used by multiple marts |
+| **Custom generic tests** | `metric_not_negative`, `metric_variance` | Reusable data quality patterns across any domain |
+| **Exposures** | 3 defined | Shows data lineage from models to business tools |
+| **Composite scoring** | `dim_partners.health_score` | Multi-signal business logic in SQL |
+| **Churn risk classification** | `dim_partners.risk_status` | Actionable segmentation from data signals |
+| **Cross-sell affinity** | `mart_category_cross_sell` | Analytical model with bundle opportunity scoring |
 
 ## Stack
 
-- **dbt Core** — transformations, testing, documentation
+- **dbt Core** — transformations, testing, snapshots, documentation
 - **DuckDB** — local analytical database (zero infrastructure)
 - **GitHub Actions** — CI pipeline (seed → run → test on every push)
 
 ## Quick Start
 
 ```bash
+python3 -m venv venv && source venv/bin/activate
 pip install dbt-core dbt-duckdb
 dbt deps
 dbt seed
+dbt snapshot
 dbt run
 dbt test
 dbt docs generate && dbt docs serve
@@ -48,10 +78,12 @@ dbt docs generate && dbt docs serve
 
 ## Data Quality
 
-- **Source tests**: uniqueness, referential integrity, accepted values on all raw tables
-- **Schema tests**: not_null, unique, relationships across staging and mart models
-- **Custom tests**: positive revenue validation, health score bounds, cross-sell self-pair detection
-- **Custom generic test**: `metric_not_negative` — reusable across any numeric column
+- **30+ tests** across sources, staging, and mart layers
+- **Source tests**: uniqueness, referential integrity, accepted values
+- **Schema tests**: not_null, unique, relationships, accepted_values on mart columns
+- **Custom singular tests**: positive revenue, health score bounds, cross-sell no self-pairs
+- **Custom generic tests**: `metric_not_negative` (reusable), `metric_variance` (anomaly detection)
+- **Exposures**: 3 downstream consumers defined (dashboards + ML export)
 
 ## Analyses
 
@@ -60,4 +92,10 @@ dbt docs generate && dbt docs serve
 
 ## Design Decisions
 
-See [docs/decisions.md](docs/decisions.md) for rationale on star schema vs OBT, health score weighting, and data quality philosophy.
+See [docs/decisions.md](docs/decisions.md) for rationale on:
+- Star schema vs OBT
+- Why incremental for facts
+- Why ephemeral intermediates
+- Health score weighting
+- Churn risk classification
+- Data quality philosophy

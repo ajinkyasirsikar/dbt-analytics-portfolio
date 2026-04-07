@@ -1,22 +1,12 @@
--- Partner dimension with revenue and engagement health metrics
--- Mirrors the unified partner view from a multi-region data model
+-- Partner dimension with revenue, engagement, and health metrics
+-- Uses intermediate revenue summary for DRY aggregation
 
 with partners as (
     select * from {{ ref('stg_partners') }}
 ),
 
 revenue as (
-    select
-        partner_id,
-        sum(amount_usd) as total_revenue,
-        sum(case when is_recurring then amount_usd else 0 end) as recurring_revenue,
-        sum(case when not is_recurring then amount_usd else 0 end) as services_revenue,
-        count(distinct product_line) as product_lines_used,
-        min(revenue_date) as first_revenue_date,
-        max(revenue_date) as last_revenue_date,
-        count(distinct revenue_year || '-' || revenue_quarter) as active_quarters
-    from {{ ref('stg_partner_revenue') }}
-    group by 1
+    select * from {{ ref('int_partner_revenue_summary') }}
 ),
 
 engagement as (
@@ -24,7 +14,13 @@ engagement as (
         partner_id,
         sum(case when event_type = 'api_calls' then metric_value else 0 end) as total_api_calls,
         sum(case when event_type = 'data_processed' then metric_value else 0 end) as total_tb_processed,
-        count(distinct event_month || '-' || event_year) as active_engagement_months
+        count(distinct event_month || '-' || event_year) as active_engagement_months,
+
+        -- recent engagement trend
+        sum(case
+            when event_date >= current_date - interval '90 days' and event_type = 'api_calls'
+            then metric_value else 0
+        end) as last_90d_api_calls
     from {{ ref('stg_partner_engagement') }}
     group by 1
 ),
@@ -43,24 +39,23 @@ final as (
         p.is_active,
         p.tenure_days,
 
-        -- revenue metrics
+        -- revenue (from intermediate)
         coalesce(r.total_revenue, 0) as total_revenue,
         coalesce(r.recurring_revenue, 0) as recurring_revenue,
         coalesce(r.services_revenue, 0) as services_revenue,
-        case
-            when r.total_revenue > 0
-            then round(r.recurring_revenue * 100.0 / r.total_revenue, 1)
-            else 0
-        end as recurring_revenue_pct,
+        coalesce(r.recurring_pct, 0) as recurring_revenue_pct,
+        coalesce(r.revenue_concentration_pct, 0) as revenue_concentration_pct,
         coalesce(r.product_lines_used, 0) as product_lines_used,
         r.first_revenue_date,
         r.last_revenue_date,
         coalesce(r.active_quarters, 0) as active_quarters,
+        coalesce(r.last_90d_revenue, 0) as last_90d_revenue,
 
-        -- engagement metrics
+        -- engagement
         coalesce(e.total_api_calls, 0) as total_api_calls,
         coalesce(e.total_tb_processed, 0) as total_tb_processed,
         coalesce(e.active_engagement_months, 0) as active_engagement_months,
+        coalesce(e.last_90d_api_calls, 0) as last_90d_api_calls,
 
         -- health score: composite of revenue consistency + engagement depth + product adoption
         round(
@@ -69,12 +64,21 @@ final as (
             (case when e.total_api_calls >= 500000 then 40 when e.total_api_calls >= 100000 then 25 else 10 end)
         , 0) as health_score,
 
-        -- revenue per day of tenure (efficiency)
+        -- revenue efficiency
         case
             when p.tenure_days > 0
             then round(coalesce(r.total_revenue, 0) / p.tenure_days, 2)
             else 0
-        end as revenue_per_day
+        end as revenue_per_day,
+
+        -- churn risk signals
+        case
+            when not p.is_active then 'churned'
+            when e.last_90d_api_calls = 0 and r.last_90d_revenue = 0 then 'high_risk'
+            when e.last_90d_api_calls = 0 or r.last_90d_revenue = 0 then 'medium_risk'
+            when r.revenue_concentration_pct > 80 then 'concentration_risk'
+            else 'healthy'
+        end as risk_status
 
     from partners p
     left join revenue r on p.partner_id = r.partner_id

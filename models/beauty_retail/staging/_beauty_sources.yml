@@ -2,7 +2,7 @@ version: 2
 
 sources:
   - name: raw
-    schema: raw
+    schema: main_raw
     description: Raw seed data simulating a beauty retail platform (Haircare, Fragrance, Skincare, Makeup)
     tables:
       - name: beauty_customers

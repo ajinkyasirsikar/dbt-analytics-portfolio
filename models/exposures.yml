@@ -1,0 +1,43 @@
+version: 2
+
+exposures:
+  - name: beauty_category_dashboard
+    type: dashboard
+    description: >
+      Executive dashboard showing category performance trends, cross-sell
+      opportunities, and customer segmentation. Updated daily from mart models.
+    maturity: high
+    owner:
+      name: Ajinkya Sirsikar
+      email: ajinkyasirsikar@gmail.com
+    depends_on:
+      - ref('mart_category_monthly_performance')
+      - ref('mart_category_cross_sell')
+      - ref('dim_beauty_customers')
+
+  - name: partner_health_report
+    type: dashboard
+    description: >
+      Regional partner health dashboard tracking revenue trends, engagement
+      depth, churn risk, and expansion opportunities across all regions.
+    maturity: high
+    owner:
+      name: Ajinkya Sirsikar
+      email: ajinkyasirsikar@gmail.com
+    depends_on:
+      - ref('dim_partners')
+      - ref('fct_partner_quarterly_revenue')
+      - ref('mart_region_summary')
+
+  - name: customer_segmentation_export
+    type: ml
+    description: >
+      Customer features exported for ML-based segmentation model.
+      Includes lifetime value, category affinity, discount sensitivity,
+      and channel preference features.
+    maturity: medium
+    owner:
+      name: Ajinkya Sirsikar
+      email: ajinkyasirsikar@gmail.com
+    depends_on:
+      - ref('dim_beauty_customers')

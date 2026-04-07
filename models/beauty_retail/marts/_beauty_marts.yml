@@ -1,0 +1,66 @@
+version: 2
+
+models:
+  - name: fct_beauty_sales
+    description: >
+      Incremental fact table at transaction line-item grain. Enriched with product
+      attributes, margin calculations, and seasonal flags. Only processes new records
+      on subsequent runs via the is_incremental() pattern.
+    config:
+      materialized: incremental
+    columns:
+      - name: txn_id
+        description: Primary key — unique transaction identifier
+        tests: [unique, not_null]
+      - name: net_revenue
+        description: Revenue after discount
+        tests:
+          - not_null
+          - metric_not_negative
+      - name: gross_profit
+        description: Net revenue × margin percentage
+        tests:
+          - metric_not_negative
+
+  - name: dim_beauty_customers
+    description: >
+      Customer dimension with lifetime value metrics, category affinity,
+      behavioral segmentation (discount sensitivity, channel preference),
+      and lifecycle status. Powered by intermediate aggregation models.
+    columns:
+      - name: customer_id
+        description: Primary key
+        tests: [unique, not_null]
+      - name: lifecycle_status
+        description: "never_purchased, active, at_risk, or lapsed"
+        tests:
+          - accepted_values:
+              values: ['never_purchased', 'active', 'at_risk', 'lapsed']
+      - name: value_tier
+        description: "Revenue-based segmentation: high_value, mid_value, low_value, no_purchases"
+        tests:
+          - accepted_values:
+              values: ['high_value', 'mid_value', 'low_value', 'no_purchases']
+      - name: discount_segment
+        description: "Discount sensitivity: discount_driven, occasional_discount, full_price"
+        tests:
+          - accepted_values:
+              values: ['discount_driven', 'occasional_discount', 'full_price']
+
+  - name: mart_category_cross_sell
+    description: >
+      Category pair affinity analysis. Shows which beauty categories are
+      purchased together, with affinity percentages, loyalty strength,
+      and a composite bundle opportunity score.
+    columns:
+      - name: category_a
+        tests: [not_null]
+      - name: category_b
+        tests: [not_null]
+      - name: bundle_opportunity_score
+        description: Composite score combining affinity rate and average spend
+
+  - name: mart_category_monthly_performance
+    description: >
+      Monthly aggregated performance by product category. Includes MoM growth,
+      online share, cumulative revenue, and channel split for trend dashboarding.

@@ -2,7 +2,7 @@ version: 2
 
 sources:
   - name: raw
-    schema: raw
+    schema: main_raw
     tables:
       - name: partner_companies
         description: Partner registration and account data across regions

@@ -1,8 +1,22 @@
 -- Fact table: enriched transactions at line-item grain
--- Joins product attributes for category/margin analysis
+-- INCREMENTAL: only processes new transactions since last run
+-- In production, this is critical for tables with millions of daily rows
+-- The is_incremental() pattern prevents full-table rescans
+
+{{
+    config(
+        materialized='incremental',
+        unique_key='txn_id',
+        incremental_strategy='merge',
+        on_schema_change='append_new_columns'
+    )
+}}
 
 with txns as (
     select * from {{ ref('stg_beauty_transactions') }}
+    {% if is_incremental() %}
+        where txn_date > (select max(txn_date) from {{ this }})
+    {% endif %}
 ),
 
 products as (
@@ -35,7 +49,20 @@ enriched as (
         p.gross_margin_pct,
 
         -- profit
-        round(t.net_revenue * p.gross_margin_pct / 100, 2) as gross_profit
+        round(t.net_revenue * p.gross_margin_pct / 100, 2) as gross_profit,
+
+        -- time-based flags for analysis
+        case
+            when t.txn_month in (11, 12) then true
+            else false
+        end as is_holiday_season,
+
+        case
+            when t.txn_month in (3, 4, 5) then 'spring'
+            when t.txn_month in (6, 7, 8) then 'summer'
+            when t.txn_month in (9, 10, 11) then 'fall'
+            else 'winter'
+        end as season
     from txns t
     inner join products p on t.product_id = p.product_id
 )

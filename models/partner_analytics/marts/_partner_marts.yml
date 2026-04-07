@@ -1,0 +1,31 @@
+version: 2
+
+models:
+  - name: dim_partners
+    description: >
+      Partner dimension with revenue metrics, engagement depth, composite health
+      score, and churn risk classification. Uses intermediate revenue summary
+      for DRY aggregation.
+    columns:
+      - name: partner_id
+        description: Primary key
+        tests: [unique, not_null]
+      - name: health_score
+        description: "Composite score (30-100): revenue consistency + product adoption + engagement"
+        tests:
+          - not_null
+      - name: risk_status
+        description: "Churn risk classification: churned, high_risk, medium_risk, concentration_risk, healthy"
+        tests:
+          - accepted_values:
+              values: ['churned', 'high_risk', 'medium_risk', 'concentration_risk', 'healthy']
+
+  - name: fct_partner_quarterly_revenue
+    description: >
+      Quarterly revenue by partner × product line × region with QoQ growth.
+      Designed for multi-region executive reporting.
+
+  - name: mart_region_summary
+    description: >
+      Cross-region executive summary: total revenue, partner counts by tier,
+      engagement metrics, and at-risk partner identification per region.
