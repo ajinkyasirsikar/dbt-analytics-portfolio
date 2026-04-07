@@ -1,0 +1,16 @@
+partner_id,partner_name,tier,region,country,industry,onboarded_date,account_manager,is_active
+PA01,TechVista Solutions,premier,NA_WEST,US,Technology,2022-03-15,Jordan Lee,true
+PA02,Nordic Data Systems,standard,EMEA_NORTH,SE,Technology,2022-06-01,Alex Berg,true
+PA03,Sakura Cloud Inc,premier,APAC,JP,Financial Services,2022-08-20,Yuki Sato,true
+PA04,Pinnacle Analytics,advanced,NA_EAST,US,Consulting,2022-11-10,Sam Rivera,true
+PA05,BrightPath AI,standard,NA_WEST,US,Technology,2023-01-15,Jordan Lee,true
+PA06,Dataflow GmbH,advanced,EMEA_CENTRAL,DE,Manufacturing,2023-03-01,Lukas Weber,true
+PA07,CloudBridge Partners,premier,NA_EAST,US,Financial Services,2023-04-20,Sam Rivera,true
+PA08,Quantum Insights,standard,APAC,AU,Healthcare,2023-06-10,Chris Tan,true
+PA09,Atlas Digital,advanced,EMEA_NORTH,UK,Retail,2023-08-01,Alex Berg,true
+PA10,Meridian Systems,standard,NA_WEST,US,Technology,2023-09-15,Jordan Lee,true
+PA11,Orion Data Labs,premier,NA_EAST,US,Technology,2023-11-01,Sam Rivera,true
+PA12,Horizon Cloud,standard,APAC,SG,Financial Services,2024-01-10,Chris Tan,true
+PA13,EuroScale AG,advanced,EMEA_CENTRAL,DE,Technology,2024-03-01,Lukas Weber,true
+PA14,SummitOne Corp,standard,NA_WEST,US,Healthcare,2024-05-15,Jordan Lee,false
+PA15,PacificEdge Ltd,advanced,APAC,AU,Retail,2024-07-01,Chris Tan,true

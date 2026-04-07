@@ -1,0 +1,62 @@
+version: 2
+
+sources:
+  - name: raw
+    schema: raw
+    tables:
+      - name: partner_companies
+        description: Partner registration and account data across regions
+        columns:
+          - name: partner_id
+            tests: [unique, not_null]
+          - name: tier
+            tests:
+              - accepted_values:
+                  values: ['premier', 'advanced', 'standard']
+          - name: region
+            tests:
+              - accepted_values:
+                  values: ['NA_WEST', 'NA_EAST', 'EMEA_NORTH', 'EMEA_CENTRAL', 'APAC']
+
+      - name: partner_revenue
+        description: Revenue transactions by partner, product line, and currency
+        columns:
+          - name: revenue_id
+            tests: [unique, not_null]
+          - name: partner_id
+            tests:
+              - relationships:
+                  to: source('raw', 'partner_companies')
+                  field: partner_id
+
+      - name: partner_engagement
+        description: Platform usage metrics (API calls, data processed) by partner
+        columns:
+          - name: engagement_id
+            tests: [unique, not_null]
+          - name: partner_id
+            tests:
+              - relationships:
+                  to: source('raw', 'partner_companies')
+                  field: partner_id
+
+models:
+  - name: stg_partners
+    description: Cleaned partner data with region groupings
+    columns:
+      - name: partner_id
+        tests: [unique, not_null]
+
+  - name: stg_partner_revenue
+    description: Revenue normalized to USD with recurring flag
+    columns:
+      - name: revenue_id
+        tests: [unique, not_null]
+      - name: amount_usd
+        tests: [not_null]
+
+  - name: stg_partner_engagement
+    description: Standardized engagement events
+    columns:
+      - name: engagement_id
+        tests: [unique, not_null]

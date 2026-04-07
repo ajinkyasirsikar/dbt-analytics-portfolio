@@ -1,0 +1,37 @@
+name: 'multi_domain_analytics'
+version: '1.0.0'
+config-version: 2
+
+profile: 'multi_domain_analytics'
+
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+seeds:
+  multi_domain_analytics:
+    +schema: raw
+
+models:
+  multi_domain_analytics:
+    beauty_retail:
+      staging:
+        +materialized: view
+        +schema: beauty_staging
+      marts:
+        +materialized: table
+        +schema: beauty_analytics
+    partner_analytics:
+      staging:
+        +materialized: view
+        +schema: partner_staging
+      marts:
+        +materialized: table
+        +schema: partner_analytics

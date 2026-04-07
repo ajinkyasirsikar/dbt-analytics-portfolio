@@ -1,0 +1,7 @@
+multi_domain_analytics:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: 'analytics.duckdb'
+      threads: 4

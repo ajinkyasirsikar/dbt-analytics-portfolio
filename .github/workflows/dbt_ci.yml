@@ -1,0 +1,38 @@
+name: dbt CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  dbt-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install dbt-core dbt-duckdb
+
+      - name: Install dbt packages
+        run: dbt deps
+
+      - name: Seed data
+        run: dbt seed
+
+      - name: Run models
+        run: dbt run
+
+      - name: Run tests
+        run: dbt test
+
+      - name: Generate docs
+        run: dbt docs generate

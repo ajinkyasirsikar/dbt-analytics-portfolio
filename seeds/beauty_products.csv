@@ -1,0 +1,19 @@
+product_id,product_name,category,subcategory,price,cost,launch_date,is_active,brand
+P101,Hydrating Face Cream,Skincare,Moisturizer,48.00,12.00,2023-01-01,true,GlowLab
+P102,Vitamin C Brightening Serum,Skincare,Serum,62.00,15.50,2023-01-01,true,GlowLab
+P103,Rose Eau de Parfum,Fragrance,Eau de Parfum,95.00,22.00,2023-01-01,true,Maison Fleur
+P104,Argan Oil Repair Shampoo,Haircare,Shampoo,28.00,7.00,2023-01-01,true,SilkStrand
+P105,Keratin Deep Conditioner,Haircare,Conditioner,32.00,8.00,2023-01-01,true,SilkStrand
+P106,Matte Lipstick Collection,Makeup,Lips,38.00,9.50,2023-01-01,true,ColorPop
+P107,Foundation SPF30,Makeup,Face,44.00,11.00,2023-01-01,true,ColorPop
+P108,Retinol Night Repair Cream,Skincare,Treatment,78.00,19.50,2023-06-01,true,GlowLab
+P109,Cedar & Sage Cologne,Fragrance,Cologne,85.00,20.00,2023-06-01,true,Maison Fleur
+P110,Intensive Hair Repair Mask,Haircare,Treatment,36.00,9.00,2023-06-01,true,SilkStrand
+P111,Peptide Eye Cream,Skincare,Eye Care,55.00,13.75,2023-09-01,true,GlowLab
+P112,Lavender Body Mist,Fragrance,Body Mist,32.00,8.00,2023-09-01,true,Maison Fleur
+P113,Volumizing Mousse,Haircare,Styling,24.00,6.00,2023-09-01,true,SilkStrand
+P114,Highlighter Palette,Makeup,Face,42.00,10.50,2024-01-01,true,ColorPop
+P115,Mineral Sunscreen SPF50,Skincare,Sun Care,34.00,8.50,2024-01-01,false,GlowLab
+P116,Biotin Hair Growth Serum,Haircare,Treatment,46.00,11.50,2024-03-01,true,SilkStrand
+P117,Niacinamide Pore Serum,Skincare,Serum,42.00,10.50,2024-03-01,true,GlowLab
+P118,Oud Wood Eau de Parfum,Fragrance,Eau de Parfum,120.00,28.00,2024-06-01,true,Maison Fleur

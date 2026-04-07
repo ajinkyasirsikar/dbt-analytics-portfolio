@@ -1,0 +1,63 @@
+version: 2
+
+sources:
+  - name: raw
+    schema: raw
+    description: Raw seed data simulating a beauty retail platform (Haircare, Fragrance, Skincare, Makeup)
+    tables:
+      - name: beauty_customers
+        description: Customer registration and loyalty data
+        columns:
+          - name: customer_id
+            tests: [unique, not_null]
+          - name: loyalty_tier
+            tests:
+              - accepted_values:
+                  values: ['gold', 'silver', 'bronze']
+      - name: beauty_products
+        description: Product catalog across beauty categories
+        columns:
+          - name: product_id
+            tests: [unique, not_null]
+          - name: category
+            tests:
+              - accepted_values:
+                  values: ['Skincare', 'Haircare', 'Fragrance', 'Makeup']
+      - name: beauty_transactions
+        description: Point-of-sale transactions (online + in-store)
+        columns:
+          - name: txn_id
+            tests: [unique, not_null]
+          - name: customer_id
+            tests:
+              - relationships:
+                  to: source('raw', 'beauty_customers')
+                  field: customer_id
+          - name: product_id
+            tests:
+              - relationships:
+                  to: source('raw', 'beauty_products')
+                  field: product_id
+
+models:
+  - name: stg_beauty_customers
+    description: Cleaned customer data with standardized loyalty tiers
+    columns:
+      - name: customer_id
+        tests: [unique, not_null]
+
+  - name: stg_beauty_products
+    description: Product catalog with computed margin and category flags
+    columns:
+      - name: product_id
+        tests: [unique, not_null]
+      - name: gross_margin_pct
+        tests: [not_null]
+
+  - name: stg_beauty_transactions
+    description: Cleaned transactions with computed line totals and net revenue
+    columns:
+      - name: txn_id
+        tests: [unique, not_null]
+      - name: net_revenue
+        tests: [not_null]
