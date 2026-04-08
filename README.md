@@ -2,7 +2,7 @@
 
 A production-style dbt project modeling two distinct business domains: **Beauty Retail** (B2C product analytics) and **Partner Channel** (B2B platform analytics). Demonstrates dimensional modeling, incremental processing, SCD Type 2 snapshots, data quality testing, and CI/CD across different data contexts.
 
-![DAG](docs/dag.png)
+![DAG](docs/dag.png?v=2)
 
 ## Architecture
 
