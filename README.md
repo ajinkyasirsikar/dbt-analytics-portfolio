@@ -2,6 +2,8 @@
 
 A production-style dbt project modeling two distinct business domains: **Beauty Retail** (B2C product analytics) and **Partner Channel** (B2B platform analytics). Demonstrates dimensional modeling, incremental processing, SCD Type 2 snapshots, data quality testing, and CI/CD across different data contexts.
 
+![DAG](docs/dag.png)
+
 ## Architecture
 
 ```
@@ -89,6 +91,23 @@ dbt docs generate && dbt docs serve
 
 - `category_affinity_insights.sql` — Which beauty categories drive cross-sell revenue?
 - `partner_expansion_opportunities.sql` — Which partners are engaged but under-adopted?
+
+## Sample Insights (from actual model output)
+
+**Beauty Retail:**
+- **Skincare dominates** at $2,808 total revenue (44% share) with 10 unique customers and 75% gross margin
+- **Occasional discount users have 2.4x higher LTV** ($301) than full-price buyers ($125) — and nearly 3x more transactions. This challenges the assumption that discounts erode value; strategic discounting drives repeat purchases
+- **Repeat buyers spend 3.9x more** ($205 avg LTV) than one-time buyers ($53) — retention is the #1 revenue lever
+
+**Partner Channel:**
+- **Americas leads** with avg health score 61.4, while APAC lags at 47.5 — suggesting regional engagement strategies need differentiation
+- **93% of partners show risk signals** (high or medium risk) — driven by low product-line adoption and inconsistent engagement, not revenue decline. This is an early-warning signal that revenue-only dashboards would miss
+
+## Code Quality
+
+- **SQLFluff** configured for consistent SQL style (lowercase keywords, explicit aliasing, trailing commas)
+- **CI pipeline** runs `dbt seed → run → test` on every push via GitHub Actions
+- See [CONTRIBUTING.md](CONTRIBUTING.md) for coding standards and how to extend the project
 
 ## Design Decisions
 
